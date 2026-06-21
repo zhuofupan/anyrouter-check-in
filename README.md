@@ -1,25 +1,34 @@
 # Any Router 多账号自动签到
 
+[![GitHub Actions](https://github.com/millylee/anyrouter-check-in/workflows/PR%20Quality%20Checks/badge.svg)](https://github.com/millylee/anyrouter-check-in/actions)
+[![codecov](https://codecov.io/gh/millylee/anyrouter-check-in/branch/main/graph/badge.svg)](https://codecov.io/gh/millylee/anyrouter-check-in)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/millylee/anyrouter-check-in/main.svg)](https://results.pre-commit.ci/latest/github/millylee/anyrouter-check-in/main)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![License](https://img.shields.io/github/license/millylee/anyrouter-check-in)](LICENSE)
+
 ## 下次更新账号配置
 
-如果只是更新 AnyRouter 账号信息、cookies、`new-api-user` 或 WAF 参数，不需要手动去 GitHub 改 Secrets。按下面做即可：
+如果只是更新 AnyRouter 账号信息、cookies、`new-api-user` 或 WAF 参数，不需要手动去 GitHub 改 Secrets。别人 fork 本仓库后也可以这样操作，但需要先 clone 自己的 fork 到本地，并用有该仓库权限的 GitHub 账号登录 `gh`。
 
-1. 打开本地文件 `CONFIG.local.json`。
-2. 修改 `accounts` 里的账号信息：
+1. 如果本地还没有 `CONFIG.local.json`，先复制 `CONFIG.local.example.json` 并改名为 `CONFIG.local.json`。
+   - Windows 命令行可运行：`copy CONFIG.local.example.json CONFIG.local.json`
+2. 打开本地文件 `CONFIG.local.json`。
+3. 修改 `accounts` 里的账号信息：
    - `cookies.session`：浏览器 Application/Storage 面板里的 `session` cookie
    - `api_user`：Network 请求头里的 `new-api-user`
    - `name`：可选，只影响日志里显示的账号名
-3. 如需调整 WAF 等待参数，修改 `providers.anyrouter`：
+4. 如需调整 WAF 等待参数，修改 `providers.anyrouter`：
    - `waf_wait_until`：默认 `domcontentloaded`
    - `waf_timeout_ms`：默认 `60000`
    - `waf_extra_wait_ms`：默认 `5000`，WAF cookie 获取不稳定时可改成 `8000` 或 `10000`
-4. 保存后，双击运行：
+5. 保存后，双击运行：
 
 ```bat
 sync-config-and-push.bat
 ```
 
-这个脚本会自动把 `CONFIG.local.json` 写入 GitHub Environment Secrets，提交并推送仓库改动，然后触发一次最新 `main` 分支上的 `checkin.yml`。`CONFIG.local.json` 已加入 `.gitignore`，不会被提交到 GitHub。
+这个脚本会自动把 `CONFIG.local.json` 写入当前仓库的 GitHub Environment Secrets，提交并推送仓库改动，然后触发一次最新 `main` 分支上的 `checkin.yml`。`CONFIG.local.json` 已加入 `.gitignore`，不会被提交到 GitHub。
 
 只想检查配置是否能读取、不写 GitHub、不提交、不推送时，运行：
 
@@ -28,13 +37,6 @@ sync-config-and-push.bat -DryRun
 ```
 
 注意：不要在旧失败记录页面点 `Re-run jobs` 来验证新代码。GitHub 会按那次失败时的旧 commit 重跑。要么运行上面的 bat，要么在 Actions 页面选择 `AnyRouter 自动签到` 后点 `Run workflow`，并确认分支是最新的 `main`。
-
-[![GitHub Actions](https://github.com/millylee/anyrouter-check-in/workflows/PR%20Quality%20Checks/badge.svg)](https://github.com/millylee/anyrouter-check-in/actions)
-[![codecov](https://codecov.io/gh/millylee/anyrouter-check-in/branch/main/graph/badge.svg)](https://codecov.io/gh/millylee/anyrouter-check-in)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/millylee/anyrouter-check-in/main.svg)](https://results.pre-commit.ci/latest/github/millylee/anyrouter-check-in/main)
-[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![License](https://img.shields.io/github/license/millylee/anyrouter-check-in)](LICENSE)
 
 多平台多账号自动签到，理论上支持所有 NewAPI、OneAPI 平台，目前内置支持 Any Router 与 Agent Router，其它可根据文档进行摸索配置。
 
