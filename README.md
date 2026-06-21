@@ -38,6 +38,12 @@ sync-config-and-push.bat -DryRun
 
 注意：不要在旧失败记录页面点 `Re-run jobs` 来验证新代码。GitHub 会按那次失败时的旧 commit 重跑。要么运行上面的 bat，要么在 Actions 页面选择 `AnyRouter 自动签到` 后点 `Run workflow`，并确认分支是最新的 `main`。
 
+---
+
+## 项目来源
+
+本仓库 fork 自 [millylee/anyrouter-check-in](https://github.com/millylee/anyrouter-check-in)，感谢原作者提供的自动签到脚本和维护工作。以下为原项目介绍。
+
 多平台多账号自动签到，理论上支持所有 NewAPI、OneAPI 平台，目前内置支持 Any Router 与 Agent Router，其它可根据文档进行摸索配置。
 
 推荐搭配使用[Auo](https://github.com/millylee/auo)，支持任意 Claude Code Token 切换的工具。
