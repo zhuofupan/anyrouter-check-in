@@ -21,8 +21,14 @@ class ProviderConfig:
 	api_user_key: str = 'new-api-user'
 	bypass_method: Literal['waf_cookies'] | None = None
 	waf_cookie_names: List[str] | None = None
+	waf_wait_until: str = 'domcontentloaded'
+	waf_timeout_ms: int = 60000
+	waf_extra_wait_ms: int = 5000
+	waf_headless: bool = True
 
 	def __post_init__(self):
+		self.domain = self.domain.rstrip('/')
+
 		required_waf_cookies = set()
 		if self.waf_cookie_names and isinstance(self.waf_cookie_names, List):
 			for item in self.waf_cookie_names:
@@ -37,6 +43,35 @@ class ProviderConfig:
 			self.bypass_method = None
 
 		self.waf_cookie_names = list(required_waf_cookies)
+
+		valid_wait_until = {'commit', 'domcontentloaded', 'load', 'networkidle'}
+		if self.waf_wait_until not in valid_wait_until:
+			print(f'[WARNING] Invalid waf_wait_until "{self.waf_wait_until}", using domcontentloaded')
+			self.waf_wait_until = 'domcontentloaded'
+
+		try:
+			self.waf_timeout_ms = int(self.waf_timeout_ms)
+		except (TypeError, ValueError):
+			print('[WARNING] Invalid waf_timeout_ms, using 60000')
+			self.waf_timeout_ms = 60000
+
+		if self.waf_timeout_ms < 5000:
+			print('[WARNING] waf_timeout_ms is too small, using 5000')
+			self.waf_timeout_ms = 5000
+
+		try:
+			self.waf_extra_wait_ms = int(self.waf_extra_wait_ms)
+		except (TypeError, ValueError):
+			print('[WARNING] Invalid waf_extra_wait_ms, using 5000')
+			self.waf_extra_wait_ms = 5000
+
+		if self.waf_extra_wait_ms < 0:
+			self.waf_extra_wait_ms = 0
+
+		if isinstance(self.waf_headless, str):
+			self.waf_headless = self.waf_headless.strip().lower() not in {'0', 'false', 'no', 'off'}
+		else:
+			self.waf_headless = bool(self.waf_headless)
 
 	@classmethod
 	def from_dict(cls, name: str, data: dict) -> 'ProviderConfig':
@@ -55,6 +90,10 @@ class ProviderConfig:
 			api_user_key=data.get('api_user_key', 'new-api-user'),
 			bypass_method=data.get('bypass_method'),
 			waf_cookie_names=data.get('waf_cookie_names'),
+			waf_wait_until=data.get('waf_wait_until', 'domcontentloaded'),
+			waf_timeout_ms=data.get('waf_timeout_ms', 60000),
+			waf_extra_wait_ms=data.get('waf_extra_wait_ms', 5000),
+			waf_headless=data.get('waf_headless', True),
 		)
 
 	def needs_waf_cookies(self) -> bool:
@@ -85,6 +124,10 @@ class AppConfig:
 				api_user_key='new-api-user',
 				bypass_method='waf_cookies',
 				waf_cookie_names=['acw_tc', 'cdn_sec_tc', 'acw_sc__v2'],
+				waf_wait_until='domcontentloaded',
+				waf_timeout_ms=60000,
+				waf_extra_wait_ms=5000,
+				waf_headless=True,
 			),
 			'agentrouter': ProviderConfig(
 				name='agentrouter',
@@ -95,6 +138,10 @@ class AppConfig:
 				api_user_key='new-api-user',
 				bypass_method='waf_cookies',
 				waf_cookie_names=['acw_tc'],
+				waf_wait_until='domcontentloaded',
+				waf_timeout_ms=60000,
+				waf_extra_wait_ms=5000,
+				waf_headless=True,
 			),
 		}
 

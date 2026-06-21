@@ -1,0 +1,48 @@
+{
+  "accounts": [
+    {
+      "name": "AnyRouter",
+      "provider": "anyrouter",
+      "cookies": {
+        "session": "PASTE_SESSION_COOKIE_HERE"
+      },
+      "api_user": "PASTE_NEW_API_USER_HERE"
+    }
+  ],
+  "providers": {
+    "anyrouter": {
+      "domain": "https://anyrouter.top",
+      "login_path": "/login",
+      "sign_in_path": "/api/user/sign_in",
+      "user_info_path": "/api/user/self",
+      "api_user_key": "new-api-user",
+      "bypass_method": "waf_cookies",
+      "waf_cookie_names": ["acw_tc", "cdn_sec_tc", "acw_sc__v2"],
+      "waf_wait_until": "domcontentloaded",
+      "waf_timeout_ms": 60000,
+      "waf_extra_wait_ms": 5000,
+      "waf_headless": true
+    }
+  },
+  "notifications": {
+    "DINGDING_WEBHOOK": "",
+    "EMAIL_USER": "",
+    "EMAIL_PASS": "",
+    "EMAIL_TO": "",
+    "EMAIL_SENDER": "",
+    "CUSTOM_SMTP_SERVER": "",
+    "PUSHPLUS_TOKEN": "",
+    "SERVERPUSHKEY": "",
+    "FEISHU_WEBHOOK": "",
+    "WEIXIN_WEBHOOK": "",
+    "TELEGRAM_BOT_TOKEN": "",
+    "TELEGRAM_CHAT_ID": "",
+    "GOTIFY_URL": "",
+    "GOTIFY_TOKEN": "",
+    "GOTIFY_PRIORITY": "",
+    "BARK_KEY": "",
+    "BARK_SERVER": ""
+  },
+  "run_workflow_after_push": true,
+  "commit_message": "chore: sync AnyRouter check-in config"
+}

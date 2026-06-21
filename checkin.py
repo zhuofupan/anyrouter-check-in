@@ -65,9 +65,21 @@ def parse_cookies(cookies_data):
 	return {}
 
 
-async def get_waf_cookies_with_playwright(account_name: str, login_url: str, required_cookies: list[str]):
+async def get_waf_cookies_with_playwright(
+	account_name: str,
+	login_url: str,
+	required_cookies: list[str],
+	wait_until: str = 'domcontentloaded',
+	timeout_ms: int = 60000,
+	extra_wait_ms: int = 5000,
+	headless: bool = True,
+):
 	"""使用 Playwright 获取 WAF cookies（隐私模式）"""
 	print(f'[PROCESSING] {account_name}: Starting browser to get WAF cookies...')
+	print(
+		f'[INFO] {account_name}: WAF page wait_until={wait_until}, timeout_ms={timeout_ms}, '
+		f'extra_wait_ms={extra_wait_ms}, headless={headless}'
+	)
 
 	async with async_playwright() as p:
 		import tempfile
@@ -75,7 +87,7 @@ async def get_waf_cookies_with_playwright(account_name: str, login_url: str, req
 		with tempfile.TemporaryDirectory() as temp_dir:
 			context = await p.chromium.launch_persistent_context(
 				user_data_dir=temp_dir,
-				headless=False,
+				headless=headless,
 				user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
 				viewport={'width': 1920, 'height': 1080},
 				args=[
@@ -92,12 +104,15 @@ async def get_waf_cookies_with_playwright(account_name: str, login_url: str, req
 			try:
 				print(f'[PROCESSING] {account_name}: Access login page to get initial cookies...')
 
-				await page.goto(login_url, wait_until='networkidle')
+				await page.goto(login_url, wait_until=wait_until, timeout=timeout_ms)
 
 				try:
 					await page.wait_for_function('document.readyState === "complete"', timeout=5000)
 				except Exception:
-					await page.wait_for_timeout(3000)
+					pass
+
+				if extra_wait_ms > 0:
+					await page.wait_for_timeout(extra_wait_ms)
 
 				cookies = await page.context.cookies()
 
@@ -157,7 +172,15 @@ async def prepare_cookies(account_name: str, provider_config, user_cookies: dict
 
 	if provider_config.needs_waf_cookies():
 		login_url = f'{provider_config.domain}{provider_config.login_path}'
-		waf_cookies = await get_waf_cookies_with_playwright(account_name, login_url, provider_config.waf_cookie_names)
+		waf_cookies = await get_waf_cookies_with_playwright(
+			account_name,
+			login_url,
+			provider_config.waf_cookie_names,
+			provider_config.waf_wait_until,
+			provider_config.waf_timeout_ms,
+			provider_config.waf_extra_wait_ms,
+			provider_config.waf_headless,
+		)
 		if not waf_cookies:
 			print(f'[FAILED] {account_name}: Unable to get WAF cookies')
 			return None
@@ -264,18 +287,18 @@ async def check_in_account(account: AccountConfig, account_index: int, app_confi
 	provider_config = app_config.get_provider(account.provider)
 	if not provider_config:
 		print(f'[FAILED] {account_name}: Provider "{account.provider}" not found in configuration')
-		return False, None
+		return False, None, None
 
 	print(f'[INFO] {account_name}: Using provider "{account.provider}" ({provider_config.domain})')
 
 	user_cookies = parse_cookies(account.cookies)
 	if not user_cookies:
 		print(f'[FAILED] {account_name}: Invalid configuration format')
-		return False, None
+		return False, None, None
 
 	all_cookies = await prepare_cookies(account_name, provider_config, user_cookies)
 	if not all_cookies:
-		return False, None
+		return False, None, None
 
 	client = httpx.Client(http2=True, timeout=30.0)
 
