@@ -72,7 +72,7 @@ function Set-GitHubEnvironmentSecret {
 	}
 
 	Write-Host "[secret] Updating $Name in environment '$Environment'"
-	& gh secret set $Name --env $Environment --repo $Repo --body $Value
+	$Value | & gh secret set $Name --env $Environment --repo $Repo
 	if ($LASTEXITCODE -ne 0) {
 		throw "Failed to set GitHub secret: $Name"
 	}
@@ -135,10 +135,12 @@ if ($DryRun) {
 }
 
 $AccountsJson = Convert-ToCompactJson $Config.accounts
+$AccountsJson | ConvertFrom-Json | Out-Null
 Set-GitHubEnvironmentSecret -Name 'ANYROUTER_ACCOUNTS' -Value $AccountsJson -Repo $Repo -Environment $EnvironmentName
 
 if (Test-JsonProperty $Config 'providers') {
 	$ProvidersJson = Convert-ToCompactJson $Config.providers
+	$ProvidersJson | ConvertFrom-Json | Out-Null
 	Set-GitHubEnvironmentSecret -Name 'PROVIDERS' -Value $ProvidersJson -Repo $Repo -Environment $EnvironmentName
 } else {
 	Write-Host '[info] providers is missing; PROVIDERS was not changed.'
